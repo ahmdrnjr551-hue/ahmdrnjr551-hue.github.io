@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-11T12:09:07.287295+00:00",
+  "owner": "ahmdrnjr551-hue",
+  "repository": "https://github.com/ahmdrnjr551-hue/ahmdrnjr551-hue.github.io",
+  "repositoryId": 1414296374,
+  "repositoryPublic": true,
+  "pagesURL": "https://ahmdrnjr551-hue.github.io/",
+  "scope": "Published deployment-status/project page plus built frontend download and corresponding source, NOT a working hosted editor",
+  "permanentRenderingBackendDeployed": false,
+  "unfilteredEveryNetworkGuaranteed": false,
+  "checks": [
+    {
+      "name": "Actual public HTTPS status page",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "Public Persian font",
+      "status": "PASS",
+      "bytes": 241328
+    },
+    {
+      "name": "Built frontend download, SHA256 and ZIP integrity",
+      "status": "PASS",
+      "bytes": 537038,
+      "sha256": "8452fd0a8617d2b8469f9c4409c2e4d252a8639a327d70b59758b149430dcdfb"
+    },
+    {
+      "name": "No backend on static Pages: explicitly verified",
+      "status": "PASS",
+      "httpStatus": 404
+    }
+  ],
+  "githubBuild": {
+    "status": "built",
+    "error": {
+      "message": null
+    },
+    "duration": 24164,
+    "commit": "46845b9fef90e25c38dc27488931d2f0ca54bca3",
+    "created_at": "2026-10-11T12:05:36Z",
+    "updated_at": "2026-10-11T12:06:00Z"
+  },
+  "successfulGitHubRun": {
+    "conclusion": "success",
+    "databaseId": 38137965633,
+    "status": "completed",
+    "url": "https://github.com/ahmdrnjr551-hue/ahmdrnjr551-hue.github.io/actions/runs/38137965633",
+    "workflowName": "pages-build-deployment"
+  }
+}
