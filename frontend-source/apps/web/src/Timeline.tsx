@@ -1,0 +1,63 @@
+import {useRef,useState} from 'react';
+import type {PointerEvent} from 'react';
+import {MousePointer2,Scissors,Copy,Trash2,Magnet,MoveHorizontal,Flag,Plus,Minus,Focus,LockKeyhole,LockKeyholeOpen,Eye,EyeOff,Volume2,VolumeX,Film,Layers,Type,Music2,Undo2,Redo2,ChevronDown} from 'lucide-react';
+import {clipDuration,clipEnd,projectDuration,formatTime,shortTime,moveClip,trimEdge,snapTime,frameTime,copy} from '../../../packages/timeline-engine';
+import type {Project,Media,Track,Clip} from '../../../packages/timeline-engine';
+import {IconButton} from './ui';
+import type {TranslationKey} from './i18n';
+type Props={project:Project;media:Media[];selected:string|null;onSelect:(id:string)=>void;onChange:(p:Project)=>void;time:number;onTime:(t:number)=>void;t:(k:TranslationKey)=>string;split:(id?:string,at?:number)=>void;duplicate:()=>void;remove:()=>void;undo:()=>void;redo:()=>void;canUndo:boolean;canRedo:boolean;ripple:boolean;onRipple:(v:boolean)=>void;snap:boolean;onSnap:(v:boolean)=>void;onTrack:(id:string,patch:Partial<Track>)=>void;onAddTrack:()=>void;onMarker:()=>void;onRemoveMarker:(id:string)=>void;onDropMedia:(id:string,trackId:string,time:number)=>void;notify:(s:string)=>void};
+const heights={video:56,overlay:40,text:40,audio:48};
+function Waveform({values,width,height=14,color='#b4a1f1'}:{values:number[];width:number;height?:number;color?:string}){
+ if(!values.length)return null;const bars=Math.max(8,Math.min(120,Math.floor(width/4))),step=values.length/bars;
+ return <svg className="waveform" width="100%" height={height} viewBox={`0 0 ${bars*4} ${height}`} preserveAspectRatio="none" aria-label="Measured audio waveform">{Array.from({length:bars},(_,i)=>{const v=values[Math.min(values.length-1,Math.floor(i*step))]||0,h=Math.max(1,v*height);return <rect key={i} x={i*4} y={(height-h)/2} width="2" height={h} fill={color} opacity=".8"/>;})}</svg>;
+}
+export function Timeline(props:Props){
+ const {project,media,selected,onSelect,onChange,time,onTime,t,ripple,snap,onTrack,notify}=props;
+ const [pps,setPps]=useState(62),[tool,setTool]=useState<'pointer'|'razor'>('pointer'),[drag,setDrag]=useState<{project:Project;id:string}|null>(null);
+ const scroller=useRef<HTMLDivElement>(null),canvas=useRef<HTMLDivElement>(null),pointer=useRef<{id:string;mode:'move'|'left'|'right';x:number;original:Project;moved:boolean;last:Project}|null>(null);
+ const shown=drag?.project??project,duration=projectDuration(shown),width=Math.max(700,Math.ceil((Math.max(12,duration)+2)*pps));
+ const secondsStep=pps>=40?1:pps>=12?5:30;
+ const ticks=Array.from({length:Math.ceil(width/pps/secondsStep)},(_,i)=>i*secondsStep);
+ const pointTime=(x:number)=>Math.max(0,(x-(canvas.current?.getBoundingClientRect().left??0))/pps);
+ function begin(e:PointerEvent<HTMLElement>,c:Clip,mode:'move'|'left'|'right'){
+   if(e.button!==0)return;e.stopPropagation();onSelect(c.id);
+   if(tool==='razor'&&mode==='move'){onTime(frameTime(pointTime(e.clientX),project.fps));props.split(c.id,frameTime(pointTime(e.clientX),project.fps));return;}
+   if(project.tracks.find(t=>t.id===c.trackId)?.locked){notify('This track is locked. Unlock it before editing.');return;}
+   e.currentTarget.setPointerCapture(e.pointerId);pointer.current={id:c.id,mode,x:e.clientX,original:copy(project),moved:false,last:project};
+ }
+ function moving(e:PointerEvent<HTMLElement>){
+   const d=pointer.current;if(!d||!e.currentTarget.hasPointerCapture(e.pointerId))return;
+   if(Math.abs(e.clientX-d.x)<3&&!d.moved)return;d.moved=true;
+   const c=d.original.clips.find(c=>c.id===d.id)!,delta=(e.clientX-d.x)/pps,m=media.find(m=>m.id===c.mediaId);
+   let pos=(d.mode==='left'?c.start:d.mode==='right'?clipEnd(c):c.start)+delta;
+   if(snap)pos=snapTime(d.original,pos,c.id,8/pps);else pos=frameTime(pos,project.fps);
+   try{const next=d.mode==='move'?moveClip(d.original,c.id,pos):trimEdge(d.original,c.id,d.mode,pos,m?.duration??1800);d.last=next;setDrag({project:next,id:c.id});}catch{/* Commit rejects invalid moves; the original clip remains unchanged. */}
+ }
+ function finish(e:PointerEvent<HTMLElement>){const d=pointer.current;if(!d)return;pointer.current=null;
+   if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);
+   setDrag(null);
+   if(!d.moved)return;
+   try{let next=d.last;if(d.mode==='move'){const target=document.elementFromPoint(e.clientX,e.clientY)?.closest<HTMLElement>('[data-track-id]');if(target?.dataset.trackId&&target.dataset.trackId!==next.clips.find(c=>c.id===d.id)?.trackId)next=moveClip(next,d.id,next.clips.find(c=>c.id===d.id)!.start,target.dataset.trackId);}
+    onChange(next);
+   }catch(e){notify((e as Error).message);}
+ }
+ const trackIcon=(kind:Track['kind'])=>kind==='video'?<Film size={13}/>:kind==='overlay'?<Layers size={13}/>:kind==='text'?<Type size={13}/>:<Music2 size={13}/>;
+ const fit=()=>{const available=scroller.current?.clientWidth??900;setPps(Math.max(2,Math.min(120,(available-50)/Math.max(12,projectDuration(project)))));};
+ return <section className="timeline-panel" dir="ltr"><div className="timeline-toolbar"><div className="timeline-tools"><div className="timeline-name"><span className="purple-dot"/>{t('timeline')}<ChevronDown size={12}/></div><span className="toolbar-divider"/><IconButton label="Selection tool (V)" active={tool==='pointer'} onClick={()=>setTool('pointer')}><MousePointer2 size={16}/></IconButton><IconButton label="Razor tool" active={tool==='razor'} onClick={()=>setTool('razor')}><Scissors size={16}/></IconButton><IconButton label={t('split')} onClick={props.split} disabled={!selected}><MoveHorizontal size={17}/></IconButton><IconButton label={t('duplicate')} onClick={props.duplicate} disabled={!selected}><Copy size={15}/></IconButton><IconButton label={t('remove')} onClick={props.remove} disabled={!selected}><Trash2 size={15}/></IconButton><span className="toolbar-divider"/><IconButton label={t('snap')} active={snap} onClick={()=>props.onSnap(!snap)}><Magnet size={16}/></IconButton><button className={`ripple-button ${ripple?'active':''}`} onClick={()=>props.onRipple(!ripple)} title={t('ripple')}><MoveHorizontal size={13}/><span>{t('ripple')}</span></button><IconButton label={t('addMarker')} onClick={props.onMarker}><Flag size={15}/></IconButton></div><div className="timeline-zoom"><span className="sequence-info">{project.fps} fps</span><IconButton label="Zoom out timeline" onClick={()=>setPps(v=>Math.max(2,v/1.25))}><Minus size={14}/></IconButton><input aria-label="Timeline zoom" type="range" min="2" max="120" value={pps} onChange={e=>setPps(Number(e.target.value))}/><IconButton label="Zoom in timeline" onClick={()=>setPps(v=>Math.min(120,v*1.25))}><Plus size={14}/></IconButton><IconButton label="Fit timeline" onClick={fit}><Focus size={15}/></IconButton></div></div>
+ <div className="timeline-body"><div className="track-headers"><div className="track-ruler-label"><span>{formatTime(time,project.fps)}</span><button aria-label={t('addTrack')} title={t('addTrack')} onClick={props.onAddTrack}><Plus size={13}/></button></div>{shown.tracks.map((track,i)=><div className={`track-header track-${track.kind} ${track.locked?'locked-track':''}`} key={track.id} style={{height:heights[track.kind]}}><div className="track-id">{trackIcon(track.kind)}<span>{track.kind==='text'?'T':track.kind==='audio'?'A':'V'}{shown.tracks.slice(0,i+1).filter(t=>['video','overlay'].includes(track.kind)?['video','overlay'].includes(t.kind):t.kind===track.kind).length}</span></div><div className="track-name">{track.name}</div><div className="track-buttons"><button aria-label={`${track.locked?'Unlock':'Lock'} ${track.name}`} title={`${track.locked?'Unlock':'Lock'} ${track.name}`} onClick={()=>onTrack(track.id,{locked:!track.locked})}>{track.locked?<LockKeyhole size={12}/>:<LockKeyholeOpen size={12}/>}</button>{track.kind!=='audio'&&<button aria-label={`${track.hidden?'Show':'Hide'} ${track.name}`} title={`${track.hidden?'Show':'Hide'} ${track.name}`} onClick={()=>onTrack(track.id,{hidden:!track.hidden})}>{track.hidden?<EyeOff size={12}/>:<Eye size={12}/>}</button>}{track.kind!=='text'&&<button aria-label={`${track.muted?'Unmute':'Mute'} ${track.name}`} title={`${track.muted?'Unmute':'Mute'} ${track.name}`} onClick={()=>onTrack(track.id,{muted:!track.muted})}>{track.muted?<VolumeX size={12}/>:<Volume2 size={12}/>}</button>}</div></div>)}</div>
+ <div className="timeline-scroll" ref={scroller}><div className={`timeline-canvas tool-${tool}`} ref={canvas} style={{width}}><div className="time-ruler" onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);onTime(frameTime(pointTime(e.clientX),project.fps));}} onPointerMove={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))onTime(frameTime(pointTime(e.clientX),project.fps));}} onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}}>{ticks.map(sec=><div key={sec} className="ruler-tick" style={{left:sec*pps}}><span>{shortTime(sec)}</span></div>)}</div>
+ {shown.tracks.map(track=><div key={track.id} data-track-id={track.id} className={`track-lane lane-${track.kind} ${track.hidden?'track-hidden':''}`} style={{height:heights[track.kind]}} onPointerDown={e=>{if(e.target===e.currentTarget)onTime(frameTime(pointTime(e.clientX),project.fps));}} onDragOver={e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';e.currentTarget.classList.add('drop-target');}} onDragLeave={e=>e.currentTarget.classList.remove('drop-target')} onDrop={e=>{e.preventDefault();e.currentTarget.classList.remove('drop-target');const id=e.dataTransfer.getData('application/rava-media');if(id)props.onDropMedia(id,track.id,snap?snapTime(project,pointTime(e.clientX),undefined,8/pps):frameTime(pointTime(e.clientX),project.fps));}}>
+ {!shown.clips.some(c=>c.trackId===track.id)&&<span className="empty-lane">{track.kind==='audio'?'Drop audio here':track.kind==='text'?'Titles & subtitles':track.kind==='overlay'?'Images & picture-in-picture':t('emptyTimeline')}</span>}
+ {shown.clips.filter(c=>c.trackId===track.id).map(c=>{const m=media.find(m=>m.id===c.mediaId),cw=clipDuration(c)*pps;
+ return <div key={c.id} role="button" tabIndex={0} aria-label={`Clip: ${c.name}`} data-clip-id={c.id} className={`timeline-clip clip-${c.kind} ${selected===c.id?'selected':''} ${drag?.id===c.id?'dragging':''} ${!m&&c.kind!=='text'?'missing-source':''}`} style={{left:c.start*pps,width:Math.max(3,cw)}} onPointerDown={e=>begin(e,c,'move')} onPointerMove={moving} onPointerUp={finish} onPointerCancel={()=>{pointer.current=null;setDrag(null);}} onDoubleClick={()=>{onSelect(c.id);onTime(c.start);}} onKeyDown={e=>{if(e.key==='Enter')onSelect(c.id);}}>
+ {m?.thumbnail&&c.kind!=='audio'&&track.kind!=='audio'&&<div className="clip-thumbnails" style={{backgroundImage:`url("${m.thumbnail}")`}}/>}
+ <span className="clip-label">{c.kind==='text'?<Type size={10}/>:c.kind==='audio'||track.kind==='audio'?<Music2 size={10}/>:<Film size={10}/>}<span>{c.kind==='text'?c.text:c.name}</span>{c.speed!==1&&<b>{c.speed}×</b>}</span>
+ {m?.hasAudio&&<Waveform values={m.waveform.slice(Math.floor(c.in/m.duration*m.waveform.length),Math.max(Math.floor(c.in/m.duration*m.waveform.length)+1,Math.ceil(c.out/m.duration*m.waveform.length)))} width={cw} height={track.kind==='audio'?24:11} color={track.kind==='audio'?'#7dd3c6':'#e1d9ff'}/>}
+ {c.keyframes.map((k,j)=><span key={j} className="clip-keyframe" style={{left:k.time*pps}} title={`${k.property}: ${k.value}`}/>)}
+ {c.fadeIn>0&&<span className="clip-fade fade-in" style={{width:Math.min(cw/2,c.fadeIn*pps)}}/>}{c.fadeOut>0&&<span className="clip-fade fade-out" style={{width:Math.min(cw/2,c.fadeOut*pps)}}/>}
+ <span className="trim-handle trim-left" aria-label="Trim start" onPointerDown={e=>begin(e,c,'left')} onPointerMove={moving} onPointerUp={finish}/><span className="trim-handle trim-right" aria-label="Trim end" onPointerDown={e=>begin(e,c,'right')} onPointerMove={moving} onPointerUp={finish}/>
+ </div>;})}
+ </div>)}
+ <div className="timeline-playhead" style={{left:time*pps}}><span className="playhead-head"/></div>{shown.markers.map(marker=><button key={marker.id} className="timeline-marker" title={`${marker.label} · right click to delete`} aria-label={`Marker: ${marker.label}`} style={{left:marker.time*pps,color:marker.color}} onClick={()=>onTime(marker.time)} onContextMenu={e=>{e.preventDefault();props.onRemoveMarker(marker.id);}}><Flag size={11} fill="currentColor"/></button>)}
+ </div></div></div><div className="timeline-bottom"><span>{t('originals')}</span><span>{shown.clips.length} clips <span className="dot-separator">·</span>{shortTime(duration)} <span className="dot-separator">·</span>{t('timelineLimit')}</span></div></section>;
+}

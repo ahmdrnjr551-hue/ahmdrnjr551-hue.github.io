@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-11T11:33:16.999921+00:00",
+  "scope": "Actual packaged RAVA web served in an isolated local static-host simulation; NOT a GitHub deployment",
+  "staticFiles": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/assets/index-CRkf4NID.js",
+      "status": 200
+    },
+    {
+      "path": "/assets/index-ByFGh56t.css",
+      "status": 200
+    },
+    {
+      "path": "/fonts/Vazirmatn.ttf",
+      "status": 200
+    },
+    {
+      "path": "/rava.svg",
+      "status": 200
+    }
+  ],
+  "backendUnavailableOnStaticHost": [
+    {
+      "path": "/api/health",
+      "status": 404
+    },
+    {
+      "path": "/api/auth/status",
+      "status": 404
+    },
+    {
+      "path": "/api/media",
+      "status": 404
+    },
+    {
+      "path": "/api/projects",
+      "status": 404
+    },
+    {
+      "path": "/api/render",
+      "status": 404
+    }
+  ],
+  "findingsFromSourceReview": {
+    "apiURLs": "Relative /api paths resolve to the frontend host, not to a separate backend",
+    "CSRF": "Current backend rejects modifying requests from a different origin",
+    "session": "Current cookie is SameSite=strict and fetch credentials are same-origin",
+    "videoURLs": "Current media and export URLs are relative; changing only fetch does not fix playback/download",
+    "viteBase": "Current / base fits a USERNAME.github.io root site; project sites need a matching base configuration"
+  },
+  "remoteRepositoryCreated": false,
+  "GitHubPagesPublished": false,
+  "permanentBackendDeployed": false,
+  "allUserFilesPreserved": true
+}
