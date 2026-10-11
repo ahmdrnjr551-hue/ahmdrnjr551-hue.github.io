@@ -1,0 +1,42 @@
+{
+  "source": "Actual extracted RAVA-Studio-0.2.0-source.zip built web, including its shipped WASM core",
+  "result": {
+    "width": 320,
+    "height": 180,
+    "fps": 25,
+    "duration": 1,
+    "warnings": [
+      "Rendered locally using single-thread FFmpeg WebAssembly. Device speed and browser storage limits apply."
+    ],
+    "codec": "h264",
+    "url": "blob:http://127.0.0.1:42805/6efdacba-4095-4f0f-b7dd-d04b33d34292",
+    "filename": "Alpine quiet.mp4",
+    "size": 46218,
+    "qualityControl": {
+      "passed": true,
+      "checks": [
+        "Nonempty output file",
+        "Actual H.264 video and AAC audio streams",
+        "Requested dimensions/frame rate/duration",
+        "Audio/video start alignment within 100 ms",
+        "Full output audio/video decoded without errors"
+      ],
+      "duration": 1,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "audioSampleRate": "48000",
+      "avStartDelta": 0,
+      "safeCorrections": [
+        "Fit/crop preserves aspect ratio",
+        "Stereo resampling and timestamp alignment",
+        "Mix limiter prevents new overshoot"
+      ],
+      "notChecked": [
+        "Semantic storytelling quality",
+        "Whether black/frozen frames are intentional",
+        "Physical Android device performance"
+      ]
+    }
+  },
+  "passed": true
+}

@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "at": "2026-10-11T14:07:32.164660+00:00",
+  "passedByExecutedSuite": {
+    "Backend": 56,
+    "Unit": 85,
+    "Server browser": 19,
+    "Local browser": 26,
+    "Public Pages browser (repeat)": 26
+  },
+  "uniqueLocalCases": 186,
+  "publicRepeatedCases": 26,
+  "totalRecordedExecutions": 212,
+  "failed": 0,
+  "skipped": 0,
+  "nativeAPKOrExeTested": false,
+  "physicalAndroidDeviceTested": false,
+  "paidInfrastructureCreated": false,
+  "userMediaUploadedByBrowserMode": false,
+  "url": "https://ahmdrnjr551-hue.github.io/",
+  "browserLimits": {
+    "sourceMB": 64,
+    "localStorageMB": 256,
+    "maxOutputMB": 64,
+    "maxOutputSeconds": 120,
+    "maxMediaClipsPerExport": 12,
+    "maxPixels": 921600,
+    "maxDimension": 1280,
+    "maxFPS": 30,
+    "format": "H264/AAC MP4"
+  },
+  "warnings": [
+    "One Starlette TestClient deprecation warning",
+    "Older FFmpeg native/WASM decoders are not certified CVE-free",
+    "Browser storage can be cleared/evicted; keep portable backups",
+    "Universal unfiltered access and all-bug-free behavior are not guaranteed"
+  ]
+}
