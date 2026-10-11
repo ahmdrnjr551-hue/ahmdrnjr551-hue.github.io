@@ -47,6 +47,13 @@ export function validateProject(raw: unknown): Project {
     if (![c.start,c.in,c.out,c.speed,c.volume,c.fadeIn,c.fadeOut].every(Number.isFinite) || c.start < 0 || c.in < 0 || c.out <= c.in || c.speed < .25 || c.speed > 4 || clipDuration(c) < .015 || c.volume < 0 || c.volume > 2 || c.fadeIn < 0 || c.fadeOut < 0 || c.fadeIn+c.fadeOut > clipDuration(c)+.001) throw new Error('Invalid clip timing, speed, volume or fades.');
     if (c.kind !== 'text' && !c.mediaId) throw new Error('Media clip has no source reference.');
     if (!c.effects || !c.textStyle || !Array.isArray(c.keyframes)) throw new Error('Clip settings are incomplete.');
+    const bounds: [keyof Effects,number,number][]=[['brightness',-.5,.5],['contrast',.2,2],['saturation',0,3],['warmth',-1,1],['blur',0,10],['sharpen',0,1.5],['zoom',1,3],['x',-1,1],['y',-1,1],['opacity',0,1],['pipScale',.1,1],['chromaSimilarity',.01,1]];
+    for(const [key,lo,hi]of bounds){const v=c.effects[key];if(typeof v!=='number'||!Number.isFinite(v)||v<lo||v>hi)throw new Error('Invalid effect value: '+key);}
+    if(!['contain','cover'].includes(c.effects.fit)||!['vignette','motionBlur'].every(k=>typeof c.effects[k as keyof Effects]==='boolean')||c.effects.chromaColor!==null&&!/^#[0-9a-f]{6}$/i.test(c.effects.chromaColor))throw new Error('Invalid effect/color settings.');
+    const ts=c.textStyle;if(!Number.isFinite(ts.fontSize)||ts.fontSize<12||ts.fontSize>160||!/^#[0-9a-f]{6}$/i.test(ts.color)||!['left','center','right'].includes(ts.align)||!['top','center','bottom'].includes(ts.position)||!['none','fade'].includes(ts.animation)||typeof ts.bold!=='boolean'||typeof ts.background!=='boolean')throw new Error('Invalid text styling.');
+    if(typeof c.text!=='string'||c.text.length>4000||c.keyframes.length>64)throw new Error('Text/keyframe limits exceeded.');
+    if(['text','image'].includes(c.kind)&&(c.reverse||c.freeze||c.speed!==1)||c.freeze&&c.kind!=='video')throw new Error('Speed/reverse/freeze are incompatible with this clip type.');
+
     if (c.reverse && c.out-c.in > 15) throw new Error('Reverse is limited to 15 source seconds in low-memory mode.');
     const seen = new Set<string>();
     for (const k of c.keyframes) {

@@ -1,11 +1,11 @@
-# RAVA Studio · GitHub Pages verification
+# RAVA Studio 0.2.0 — functional local browser editor
 
-Owner-authorized frontend publication for https://ahmdrnjr551-hue.github.io.
+**Open:** https://ahmdrnjr551-hue.github.io/ · [Persian start guide](START-HERE-browser.fa.md).
 
-**This is a deployment-status/project page, not a fully deployed video editor.** The built frontend is downloadable, and its corresponding source and dependency lockfile are included. The Python/FFmpeg rendering backend is not hosted here. No passwords, provider keys, runtime database, or private media are included.
+The placeholder/status page has been replaced with the actual shared editor. Media import, analysis and H.264/AAC rendering use real single-thread FFmpeg/ffprobe WebAssembly in your browser. Original media/projects are held in local IndexedDB; no media is uploaded to GitHub or a rendering server. Portable source-inclusive ZIP backup and tested offline reload/export are available.
 
-See deployment-verification.json for the actual successful public HTTPS deployment; see ASSESSMENT.fa.md and static-test-evidence.json for the executed local static-host test and architectural requirements.
+Bounds: 64 MB/source, 256 MB local media/exports, MP4 H264/AAC at 720p/30fps, 120 seconds and 12 media clips per render. Keep originals and downloaded project/backup outside browser storage. The 31 MB engine downloads on first processing. Not a 4K/GPU/native device/semantic AI guarantee.
 
-To rebuild the corresponding frontend: cd frontend-source; npm ci; npx vite build --config apps/web/vite.config.ts. The backend-dependent app still requires a functioning server; do not claim import/export works from a static host alone.
+Corresponding frontend source, locks and build script are in `frontend-source/`: `npm ci && npm run build:browser`. GPL/MIT/font notices and exact FFmpeg core build/source directions are in `licenses/`.
 
-License: GPL-3.0; third-party notices and font licenses are included.
+Historical hosting-method verification remains in ASSESSMENT.fa.md / hosting-verification-history.html. Current executed tests/public checks are added to the release evidence when complete; do not confuse the historical static-host test with the current browser worker edition. No paid service or private data is included.

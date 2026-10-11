@@ -20,3 +20,5 @@
 
 /* Prioritize the measured recommendation and working Auto Edit action above the fold. */
 .copilot-scroll{display:flex;flex-direction:column;align-items:stretch}.copilot-scroll>*{flex-shrink:0}.analysis-ready .copilot-description{display:none}.analysis-ready .local-mode{align-self:flex-start;margin-top:9px}.analysis-ready .style-recommendation{order:1;margin-top:13px}.analysis-ready .auto-edit-cta{order:2}.analysis-ready .analysis-done{order:3}.analysis-ready .analysis-stats{order:4}.analysis-ready .moments-heading{order:5}.analysis-ready .moment-list{order:6}.analysis-ready .honest-analysis-note{order:7}.assistant-conversation{order:8;flex-shrink:1}.assistant-proposal{order:9}.panel-subtitle,.media-card-caption small{direction:ltr;unicode-bidi:isolate}
+
+.local-mode-note{display:flex;align-items:center;gap:8px;background:#211d2a;color:#b6abc9;border-bottom:1px solid #352c42;padding:6px 20px;font-size:10px;line-height:1.5}.local-mode-note svg{flex-shrink:0;color:#a899cf}@media(max-width:760px){.local-mode-note{padding:6px 12px;font-size:9px}}

@@ -1,10 +1,12 @@
 import type {Job} from '../../../packages/timeline-engine';
+export const BROWSER_MODE=import.meta.env.VITE_RAVA_MODE==='browser';
 export class APIError extends Error {constructor(message:string,public status:number){super(message);this.name='APIError';}}
 function errorText(data:unknown):string {
   if(data&&typeof data==='object'&&'detail'in data){const d=(data as {detail:unknown}).detail;return typeof d==='string'?d:JSON.stringify(d);}
   return 'The server could not complete this operation.';
 }
 export async function api<T>(path:string,method='GET',body?:unknown):Promise<T>{
+  if(BROWSER_MODE){try{return await(await import('./browser/api')).browserAPI<T>(path,method,body);}catch(e){throw new APIError((e as Error).message,(e as {status?:number}).status??400);}}
   let response:Response;
   try{response=await fetch(path,{method,credentials:'same-origin',headers:body!==undefined?{'Content-Type':'application/json'}:undefined,body:body!==undefined?JSON.stringify(body):undefined});}
   catch{throw new APIError('Rendering server is unreachable. Local timeline edits are retained; reconnect to import/process/export.',0);}
@@ -12,6 +14,7 @@ export async function api<T>(path:string,method='GET',body?:unknown):Promise<T>{
   return await response.json() as T;
 }
 export function upload(file:File,onProgress:(percent:number)=>void,route='/api/media/import',fields?:Record<string,string>):Promise<Job<{media:import('../../../packages/timeline-engine').Media}>>{
+  if(BROWSER_MODE)return import('./browser/api').then(m=>m.browserUpload(file,onProgress,route,fields));
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();xhr.open('POST',route);xhr.responseType='json';xhr.timeout=180000;
     xhr.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total);};

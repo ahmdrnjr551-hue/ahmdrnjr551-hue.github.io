@@ -23,3 +23,7 @@ Font provenance:
 Media tool guidance: https://ffmpeg.org/download.html and https://ffmpeg.org/legal.html . For GPL binary redistribution, provide the complete corresponding source, relevant library versions, patches and build scripts for the exact distributed binaries; an upstream URL alone is not assumed sufficient. Codec patent/licensing obligations may differ by jurisdiction/use and were not legally audited.
 
 The source ZIP does **not** include FFmpeg/Electron/Python runtime binaries. It includes application source, fonts with licenses, generated test media/evidence and a built web bundle. The Windows packaging script copies owner-provided trusted decoder binaries; release acceptance and complete binary license materials remain the distributor's responsibility. Do not represent this source handoff as signed/store-certified software.
+
+## Browser FFmpeg WebAssembly (0.2)
+
+The pinned MIT loader/util and GPL-2.0-or-later core 0.12.10 are served locally, not from a third-party CDN. FFmpeg n5.1.4, build scripts, corresponding-source archive/directions and linked-library source commits are documented in `licenses/ffmpeg-wasm/`. This application chooses GPLv3-compatible distribution for the combined GPL core and frontend. Original third-party library licenses and source directions remain publicly accessible beside the binary. These sources were retrieved, but a source rebuild of the FFmpeg core was not executed. Audits of JS/Python do not cover native decoder CVEs.
